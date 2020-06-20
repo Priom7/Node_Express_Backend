@@ -1,20 +1,25 @@
-const express = require('express')
-const body_Parser = require('body-parser')
+const express = require("express");
+const body_Parser = require("body-parser");
+const places_Routes = require("./routes/places-routes");
+const HttpError = require("./models/http-error");
 
-const places_Routes = require('./routes/places-routes')
+const app = express();
 
-const app = express()
+app.use(body_Parser.json());
+app.use("/api/places", places_Routes);
 
-// => /api/places/...
-app.use('/api/places',places_Routes)
+app.use((req, res, next) => {
+  const error = new HttpError("Cloud not find the route.", 404);
+  throw error;
+});
 
 app.use((error, req, res, next) => {
-    if(res.headerSent) {
-        return next (error)
-    } 
+  if (res.headerSent) {
+    return next(error);
+  }
 
-    res.status(error.code || 500)
-    res.json({message: error.message || 'An unknown error occurred'})
-})
+  res.status(error.code || 500);
+  res.json({ message: error.message || "An unknown error occurred" });
+});
 
-app.listen(5000)
+app.listen(5000);
