@@ -1,20 +1,49 @@
+// Importing modules
+
 const express = require("express");
-const body_Parser = require("body-parser");
+const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const places_Routes = require("./routes/places-routes");
-const users_Routes = require("./routes/users-routes");
+const placesRoutes = require("./routes/places-routes");
+const usersRoutes = require("./routes/users-routes");
 const HttpError = require("./models/http-error");
+
+// Getting express() from express
 
 const app = express();
 
-app.use(body_Parser.json());
-app.use("/api/places", places_Routes);
-app.use("/api/users", users_Routes);
+// Parsing JSON Data from
+
+app.use(bodyParser.json());
+
+// For CORS fix in browser error
+
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE");
+  next();
+});
+
+// Using Places API routs
+
+app.use("/api/places", placesRoutes);
+
+// Using Users API routes
+
+app.use("/api/users", usersRoutes);
+
+// Using Custom HttpError Model
 
 app.use((req, res, next) => {
   const error = new HttpError("Cloud not find the route.", 404);
   throw error;
 });
+
+// Using Special Error handling middleware function (with 4 parameters).
+// Will only executed when requests that has error attached with it
 
 app.use((error, req, res, next) => {
   if (res.headerSent) {
@@ -25,9 +54,11 @@ app.use((error, req, res, next) => {
   res.json({ message: error.message || "An unknown error occurred" });
 });
 
+// Connecting To MongoDB database and starting backend server
+
 mongoose
   .connect(
-    "mongodb+srv://priom:3Gp4RVh5gDWa90p0@cluster0-soxqi.mongodb.net/places?retryWrites=true&w=majority"
+    "mongodb+srv://priom:3Gp4RVh5gDWa90p0@cluster0-soxqi.mongodb.net/mern?retryWrites=true&w=majority"
   )
   .then(() => {
     app.listen(5000);
