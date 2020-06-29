@@ -1,5 +1,6 @@
 // Importing modules
-
+const fs = require("fs");
+const path = require("path");
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
@@ -14,6 +15,8 @@ const app = express();
 // Parsing JSON Data from
 
 app.use(bodyParser.json());
+
+app.use("/uploads/images", express.static(path.join("uploads", "images")));
 
 // For CORS fix in browser error
 
@@ -46,6 +49,11 @@ app.use((req, res, next) => {
 // Will only executed when requests that has error attached with it
 
 app.use((error, req, res, next) => {
+  if (req.file) {
+    fs.unlink(req.file.path, () => {
+      console.log(error);
+    });
+  }
   if (res.headerSent) {
     return next(error);
   }

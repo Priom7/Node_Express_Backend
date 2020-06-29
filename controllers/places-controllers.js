@@ -1,5 +1,5 @@
 // Importing modules
-
+const fs = require("fs");
 const { validationResult, check } = require("express-validator");
 const getCoordinatesFromAddress = require("../util/location");
 const HttpError = require("../models/http-error");
@@ -58,6 +58,8 @@ const getPlacesByUserId = async (req, res, next) => {
   });
 };
 
+// Creating Place
+
 const createPlace = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -77,7 +79,7 @@ const createPlace = async (req, res, next) => {
     description,
     address,
     location: coordinates,
-    image: "https://wallpaperaccess.com/full/1204217.jpg",
+    image: req.file.path,
     creator,
   });
 
@@ -158,8 +160,8 @@ const updatePlaceById = async (req, res, next) => {
 
 const deletePlaceById = async (req, res, next) => {
   const placeId = req.params.pid;
-  let place;
 
+  let place;
   try {
     place = await Place.findById(placeId).populate("creator");
   } catch (err) {
@@ -175,6 +177,8 @@ const deletePlaceById = async (req, res, next) => {
     return next(error);
   }
 
+  const imagePath = place.image;
+
   try {
     const deleteSession = await mongoose.startSession();
     deleteSession.startTransaction();
@@ -188,9 +192,12 @@ const deletePlaceById = async (req, res, next) => {
       500
     );
     return next(error);
-
-    res.status(200).json({ message: "Deleted Place" });
   }
+
+  fs.unlink(imagePath, (err) => {
+    console.log(err);
+  });
+  res.status(200).json({ message: "Deleted Place" });
 };
 
 // Exporting

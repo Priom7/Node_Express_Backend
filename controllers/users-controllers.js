@@ -30,6 +30,7 @@ const signUpUser = async (req, res, next) => {
     );
   }
   const { name, email, password } = req.body;
+
   let existingUser;
 
   try {
@@ -54,8 +55,7 @@ const signUpUser = async (req, res, next) => {
     name,
     email,
     password,
-    image:
-      "https://www.popsci.com/resizer/oBw2zifFCqH3deU6vy2bPRSG99Q=/760x456/arc-anglerfish-arc2-prod-bonnier.s3.amazonaws.com/public/WMD5M52LJFBEBIHNEEABHVB6LA.jpg",
+    image: req.file.path,
     places: [],
   });
 
@@ -96,7 +96,10 @@ const loginUser = async (req, res, next) => {
     );
     return next(error);
   }
-  res.json({ message: "Logged in!!" });
+  res.json({
+    message: "Logged in!!",
+    user: existingUser.toObject({ getters: true }),
+  });
 };
 
 //Exporting
