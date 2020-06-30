@@ -2,6 +2,8 @@
 
 const HttpError = require("../models/http-error");
 const { validationResult } = require("express-validator");
+const bcrypt = require("bcryptjs");
+const jsonWebToken = require("jsonwebtoken");
 const User = require("../models/user");
 
 // Fetching Users
@@ -51,10 +53,21 @@ const signUpUser = async (req, res, next) => {
     return next(error);
   }
 
+  let hashedPassword;
+  try {
+    hashedPassword = await bcrypt.hash(password, 12);
+  } catch (err) {
+    const error = new HttpError(
+      "Could not create user, please try again...",
+      500
+    );
+    return next(error);
+  }
+
   const createdUser = new User({
     name,
     email,
-    password,
+    password: hashedPassword,
     image: req.file.path,
     places: [],
   });
@@ -68,8 +81,28 @@ const signUpUser = async (req, res, next) => {
     );
     return next(error);
   }
+  // token string key "secret_value_dont_share" must be same
+  let token;
+  try {
+    token = jsonWebToken.sign(
+      {
+        userId: createdUser.id,
+        email: createdUser.email,
+      },
+      "secret_value_dont_share",
+      { expiresIn: "1h" }
+    );
+  } catch (err) {
+    const error = new HttpError(
+      "Signing up failed, please try again later...",
+      500
+    );
+    return next(error);
+  }
 
-  res.status(201).json({ user: createdUser.toObject({ getters: true }) });
+  res
+    .status(201)
+    .json({ userId: createdUser.id, email: createdUser.email, token: token });
 };
 
 //Logging in Users
@@ -89,16 +122,55 @@ const loginUser = async (req, res, next) => {
     return next(error);
   }
 
-  if (!existingUser || existingUser.password !== password) {
+  if (!existingUser) {
     const error = new HttpError(
       "Could not identify the user, credentials seems to be wrong",
       401
     );
     return next(error);
   }
+
+  let isValidPassword;
+  try {
+    isValidPassword = await bcrypt.compare(password, existingUser.password);
+  } catch (err) {
+    const error = new HttpError(
+      "Could not log you in, please check your credentials and try again...",
+      500
+    );
+    return next(error);
+  }
+
+  if (!isValidPassword) {
+    const error = new HttpError(
+      "Could not identify the user, credentials seems to be wrong",
+      403
+    );
+    return next(error);
+  }
+  // token string key "secret_value_dont_share" must be same
+  let token;
+  try {
+    token = jsonWebToken.sign(
+      {
+        userId: existingUser.id,
+        email: existingUser.email,
+      },
+      "secret_value_dont_share",
+      { expiresIn: "1h" }
+    );
+  } catch (err) {
+    const error = new HttpError(
+      "Logging in failed, please try again later...",
+      500
+    );
+    return next(error);
+  }
+
   res.json({
-    message: "Logged in!!",
-    user: existingUser.toObject({ getters: true }),
+    userId: existingUser.id,
+    email: existingUser.email,
+    token: token,
   });
 };
 
