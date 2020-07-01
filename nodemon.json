@@ -1,0 +1,9 @@
+{
+  "env": {
+    "DB_USER": "priom",
+    "DB_PASSWORD": "U1xGTwA4p2kefeoJ",
+    "DB_NAME": "mern",
+    "GOOGLE_API_KEY": "...",
+    "JSON_WEB_TOKEN_KEY": "lal_secret_nil_secret_holud"
+  }
+}

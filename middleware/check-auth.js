@@ -10,7 +10,10 @@ module.exports = (req, res, next) => {
     if (!token) {
       throw new Error("Authentication Failed!!");
     }
-    const decodedToken = jsonWebToken.verify(token, "secret_value_dont_share");
+    const decodedToken = jsonWebToken.verify(
+      token,
+      process.env.JSON_WEB_TOKEN_KEY
+    );
     req.userData = { userId: decodedToken.userId };
     next();
   } catch (err) {

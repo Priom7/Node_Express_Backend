@@ -81,7 +81,7 @@ const signUpUser = async (req, res, next) => {
     );
     return next(error);
   }
-  // token string key "secret_value_dont_share" must be same
+  // json token string key must be same
   let token;
   try {
     token = jsonWebToken.sign(
@@ -89,7 +89,7 @@ const signUpUser = async (req, res, next) => {
         userId: createdUser.id,
         email: createdUser.email,
       },
-      "secret_value_dont_share",
+      process.env.JSON_WEB_TOKEN_KEY,
       { expiresIn: "1h" }
     );
   } catch (err) {
@@ -148,7 +148,7 @@ const loginUser = async (req, res, next) => {
     );
     return next(error);
   }
-  // token string key "secret_value_dont_share" must be same
+  // json token string key must be same
   let token;
   try {
     token = jsonWebToken.sign(
@@ -156,7 +156,7 @@ const loginUser = async (req, res, next) => {
         userId: existingUser.id,
         email: existingUser.email,
       },
-      "secret_value_dont_share",
+      process.env.JSON_WEB_TOKEN_KEY,
       { expiresIn: "1h" }
     );
   } catch (err) {
