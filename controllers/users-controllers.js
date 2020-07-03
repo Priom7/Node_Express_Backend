@@ -5,13 +5,18 @@ const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jsonWebToken = require("jsonwebtoken");
 const User = require("../models/user");
+const Place = require("../models/place");
 
 // Fetching Users
 
 const getUsers = async (req, res, next) => {
   let users;
+  let userCount;
+  let placeCount;
   try {
     users = await User.find({}, "-password");
+    userCount = await User.count("users");
+    placeCount = await Place.count("places");
   } catch (err) {
     const error = new HttpError(
       "Fetching users failed, please try again later",
@@ -19,7 +24,11 @@ const getUsers = async (req, res, next) => {
     );
     return next(error);
   }
-  res.json({ users: users.map((user) => user.toObject({ getters: true })) });
+  res.json({
+    users: users.map((user) => user.toObject({ getters: true })),
+    userCount,
+    placeCount,
+  });
 };
 
 //Signing up USers

@@ -38,8 +38,10 @@ const getPlaceById = async (req, res, next) => {
 const getPlacesByUserId = async (req, res, next) => {
   const userId = req.params.uid;
   let places;
+  let users;
   try {
     places = await Place.find({ creator: userId });
+    users = await User.findOne({ _id: userId }, "-password");
   } catch (err) {
     const error = new HttpError(
       "Fetching places failed, please try again later...",
@@ -55,6 +57,7 @@ const getPlacesByUserId = async (req, res, next) => {
 
   res.json({
     places: places.map((place) => place.toObject({ getters: true })),
+    users: users,
   });
 };
 
